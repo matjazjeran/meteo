@@ -1,0 +1,646 @@
+\documentclass[a4paper,10pt,titlepage]{article}
+%% paper size, font size and type of publ.  %>
+%% Main knitr script for the publication  %>
+
+%% Matjaž Jeran  %>
+%% 10.10.2022  %>
+
+\usepackage[utf8]{inputenc}    %% code table for text  %>
+%% \usepackage[english]{babel} %% select language  %>
+\usepackage[slovene]{babel}    %% select language  %>
+\usepackage{graphicx}          %% allow input of EPS graphics - automaticly used for documentclass book  %>
+%% \usepackage[dvips]{color}   %% use colours - automaticly used for documentclass book  %>
+\usepackage{caption}           %% use caption under picture  %>
+\usepackage{subcaption}        %% use subcaption under picture  %>
+\usepackage{textcomp}          %% euro symbol %>
+\usepackage{calc}              %% allow calculation of line width  %>
+\usepackage{fancyhdr}          %% fancy page headers etc.  %>
+\usepackage{datetime}          %% for command \currenttime  %>
+\usepackage{hyperref}          %% for hyperlinks \href  %>
+\usepackage{lastpage}          %% allow the count of all pages in document  %>
+\usepackage{helvet}            %% use font Helvetica (Nimbus) instead of Times Roman  %>
+\renewcommand{\rmdefault}{phv}
+%% \pagestyle{fancy}
+%% \headheight 12pt
+\begin{document}
+%% \SweaveOpts{concordance=TRUE}
+
+%% Set initial values for R for all document
+%% The time can be also printed in Sweave style 
+<<eval=TRUE,echo=FALSE,results="asis",cache=TRUE,warning=FALSE,message=FALSE,comment=NA,out.width="100%">>=
+
+# define all constants and functions needed
+
+Location <- "Ljubljana"
+# Location <- "Kredarica"
+# Location <- "Rakican"
+
+
+load (file = paste0 ("./Data/", Location, "_ref.RData")) # ref.months.1948.2021, ref.months.1951.1980, ref.months.1981.2010
+load (file = paste0 ("./Data/", Location, "_stat.RData"))  # day.term, month.stat, year.stat
+
+# all texts used in the analysis
+nl <- "\n"
+eol <- paste0 ("\\\\", nl)
+
+txt.all.data <- "obdobje vseh podatkov"
+txt.amount.year <- "letna količina"
+txt.ave <- "povprečje"
+txt.ave.day.temp <- "mesečna povprečja povprečne dnevne temperature po letih"
+txt.ave.day.temp.deg <- "Mesečna povprečja povprečne dnevne temperature (st C)"
+txt.ave.max.rain.ref <- "povprečja in maksimumi vseh dnevnih padavin po dnevih v letu"
+txt.ave.minmax.year.temp <- "povprečne in skrajne letne temperature"
+txt.ave.month.ave.day <- "mesečna povprečja dnevnih temperatur"
+txt.ave.month.ave.day.deg <- "Mesečna povprečja dnevnih temperatur (st C)"
+txt.ave.temp.day <- "povprečne dnevne temperature po dnevih v letu"
+txt.ave.temp.day.deg <- "Povprečna dnevna temperatura (st C)"
+txt.ave.year.temp <- "povprečne letne temperature"
+txt.ave.year.temp.deg <- "Povprečne letne temperature (st C)"
+txt.cmp.month.ave.day.2021 <- "primerjava povprečnih mesečnih temperatur v letu 2021\nz referenčnimi 1981-2010"
+txt.cmp.month.ave.day.2022 <- "primerjava povprečnih mesečnih temperatur v letu 2022\nz referenčnimi 1981-2010"
+txt.cmp.month.ave.day.june <- "primerjava povprečnih junijskih temperatur v letu 2022\nz referenčnimi 1981-2010"
+txt.cmp.month.ave.day.july <- "primerjava povprečnih julijskih temperatur v letu 2022\nz referenčnimi 1981-2010"
+txt.cmp.month.rain <- "primerjava ref. skupnih mesečnih padavin\nz referenčnimi 1981-2010"
+txt.cmp.month.sun <- "primerjava ref. skupnega mesečnega trajanja\nsončnega obsevanja z referenčnimi 1981-2010"
+txt.cmp.precipit.ref <- "primerjava povprečnih dnevnih padavin z referenčnimi v letu"
+txt.cmp.temp.ref <- "primerjava povprečnih dnevnih temperatur z referenčnimi v letu"
+txt.cmp.year.ave.day <- "primerjava povprečnih mesečnih temperatur\nz referenčnimi 1981-2010"
+txt.cmp.year.rain <- "primerjava ref. skupnih mesečnih padavin\nz referenčnimi 1981-2010"
+txt.cmp.year.sun <- "primerjava ref. skupnega letnega trajanja\nsončnega obsevanja z referenčnimi 1981-2010"
+txt.day.rain <- "dnevne padavine"
+txt.day.rain.mm <- "Dnevne padavine (mm)"
+txt.day.sun <- "dnevno sončno obsevanje"
+txt.day.sun.h <- "Dnevno sončno obsevanje (h)"
+txt.freezing.days <- "dnevi z zmrzaljo"
+txt.last.year <- paste ("leto", "2021")
+txt.long.year <- "letno trajanje"
+txt.max <- "max"
+txt.max.day.temp <- "mesečni maksimumi maksimalne dnevne temperature po letih"
+txt.max.day.temp.deg <- "Mesečni maksimimi maksimalne dnevne temperature (st C)"
+txt.max.daily.precipit.Year <- "Največja dnevna količina padavin v letu (mm)"
+txt.max.daily.precipit.year <- "največja dnevna količina padavin v letu (mm)"
+txt.max.year.max.day <- "mesečni maksimumi dnevnih maksimalnih temperatur"
+txt.max.year.temp <- "povprečne letne maksimalne dnevne temperature"
+txt.max.year.temp.deg <- "Povprečne letne maksimalne temperature (st C)"
+txt.mean.precipit <- "povprečne dnevne padavine po dnevih v referenčnem letu"
+txt.mean.sun.days <- "povprečno dnevno sončno obsevanje po dnevih v referenčnem letu"
+txt.med.ave.temp.ref <- "mediane meritev dnevnih temperatur\npo dnevih v letu za referenčno obdobje"
+txt.min <- "min"
+txt.min.day.temp <- "mesečni minimumi minimalne dnevne temperature po letih"
+txt.min.day.temp.deg <- "Mesečni minimumi minimalne dnevne temperature (st C)"
+txt.min.year.temp <- "povprečne letne minimalne dnevne temperature"
+txt.min.year.temp.deg <- "Povprečne letne minimalne temperature (st C)"
+txt.month.rain <- "skupne mesečne padavine po letih"
+txt.month.rain.mm <- "Skupne mesečne padavine (mm)"
+txt.month.sun <- "skupno mesečno trajanje sončnega obsevanja"
+txt.month.sun.h <- "Skupno mesečno trajanje sončnega obsevanja (h)"
+txt.months.years <- "Meseci v letih"
+txt.no.days.Precipit <- "Število dni med padavinami"
+txt.no.days.precipit <- "število dni med padavinami"
+txt.no.freezing.days <- "Ni dni z zmrzaljo"
+txt.no.tropic.nights <- "Ni tropskih noči."
+txt.num.freezing.days <- "Število dni z zmrzaljo v letu"
+txt.num.Rain.days <- "Število dni s padavinami"
+txt.num.rain.days <- "število dni s padavinami"
+txt.num.Snow.cover <- "Število dni s snežno odejo v letu"
+txt.num.Snowy.days <- "Število dni s snegom"
+txt.num.snowy.days <- "število dni s snegom"
+txt.num.tropic.nights <- "Število tropskih noči v letu"
+txt.obd <- "obdobje"
+txt.prob.rain <- "Verjetnost dežja"
+txt.prob.rain.day <- "verjetnost dežja po dnevih v letu"
+txt.rain.day.year <- "dnevne padavine po mesecih"
+txt.rain.days <- "dnevi s padavinami"
+txt.rain.mm <- "Padavine (mm)"
+txt.range.day.temp <- "razpon povprečnih dnevnih temperatur po mesecih"
+txt.ref.int <- paste ("referenčno obdobje", "1981-2010")
+txt.ref.year <- "Referenčno leto"
+txt.ref.years <- "Referenčno leto za obdobje"
+txt.sum.sun.month <- "skupno mesečno trajanje sončnega obsevanja po letih"
+txt.sum.sun.month.h <- "Skupno mesečno trajanje sončnega obsevanja (h)"
+txt.sun.day.h <- "Dnevno sončno obsevanje (h)"
+txt.sun.day.year.h <- "Dnevno sončno sevanje po letih (h)"
+txt.temp <- "Temperatura (st C)"
+txt.time.days <- "Čas (dnevi v letu)"
+txt.time.months <- "Čas (meseci v letu)"
+txt.time.years <- "Čas (leta)"
+txt.tropic.nights <- "tropske noči"
+txt.year.ave <- "letno povprečje"
+txt.year.rain <- "skupne letne padavine"
+txt.year.rain.mm <- "Skupne letne padavine (mm))"
+txt.year.sun <- "skupno letno trajanje sončnega obsevanja"
+txt.year.sun.h <- "Skupno letno trajanje sončnega obsevanja (h)"
+txt.year.temp <- "letne temperature"
+txt.year.temp.deg <- "Letna temperatura (stopinje C)"
+
+
+# select reference years interval and latest year
+
+Ref.dates <- "1981:2010"
+ref.years <- ref.years.1981.2010
+ref.months <- ref.months.1981.2010
+latest.year <- 2021
+cur.ref.days  <- ref.days.1981.2010
+
+cur.ref.days  <- ref.days.1981.2010
+cur.box.days <- subset (day.term, subset = "1981-01-01" <= date & date <= "2010-12-31")
+
+type.month = format (month.stat$month, "%m")
+@
+\clearpage
+\author{Matjaž Jeran}
+\title{Klimatske spremembe v Ljubljani}
+\maketitle
+%%\include{AAAAbstract}
+\begin{abstract}
+
+To poročilo vsebuje kratek grafični opis klimatskih sprememb v Ljubljani in okolici s komentarji grafikonov povprečnih temperatur, sončnega obsevanja in padavin.
+
+Grafikoni in izračuni so izdelani na prosto dostopnih podatkih Urada za meteorologijo ARSO na spletišču \url{https://www.meteo.si/}. Zbirka podatkov vsebuje dnevne podatke vremenskih opazovalnic v Sloveniji, med njimi tudi opazovalnice v Ljubljani za Bežigradom od dne 01.01.1948 do 31.07.2022.
+
+Vrednosti podatkov so naravna danost, njihove meritve so zasluga meteorologov, izbira grafikonov in komentarji pa so zgolj osebno mnenje avtorja. Nabor avtorjevega prosto dostopnega programja in podatkov je javno dostopna na \url{https://github.com/matjazjeran/meteo}.
+
+Namenom tega poročila je, da spodbudi razmislek o ukrepih za blaženje in prilagajanje klimatskim spremembam, ki jih ne le merimo, ampak že tudi resno občutimo v življenju in delu.
+
+Letos so to najprej in največ občutili gasilci, a bojim se, da bomo kmalu na nek način spoznali vsi. 
+\end{abstract}
+\tableofcontents
+\clearpage
+\section{Temperatura}
+\begin{figure}[ht]
+<<eval=TRUE, echo=FALSE, results="asis", cache=FALSE, warning=FALSE, message=FALSE, comment=NA, out.width='100%'>>=
+library (ggplot2)
+data <- subset (year.stat, subset = year.str < "2022",
+                select = c (year, Ymean.min.temp.C, Ymean.ave.temp.C, Ymean.max.temp.C))
+ggplot2::ggplot (data = data, aes (x = year, y = Ymean.ave.temp.C)) + geom_line() +
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, txt.ave.year.temp)) +
+  xlab (txt.time.years) + ylab (txt.temp) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.ave.year.temp, "}", nl)))
+@
+\end{figure}
+V času meritev od leta 1948 do danes se je povprečna letna temperatura dvignila za 2,5$^\circ$C. V letih okrog 1970 je bila povprečna temperatura pod 10$^\circ$C, danes je že nad 12$^\circ$C.
+
+Na prvi pogled dve stopinji na letnem povprečju ne pomenita veliko, a v nadaljevanju bomo videli, da to predstavlja lahko zelo velike spremembe, ki jih ne moremo zanemariti.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+library (ggplot2)
+
+cur.days <- subset (day.term, subset = date < "2022-01-01")
+tropic <- subset (cur.days, subset = min.temp.C >= 20)
+if (dim (tropic)[1] > 0) {
+  # postej jih po letih
+  count.tropic <- aggregate (x = cur.days$min.temp.C >= 20,
+                             by = list (year = format (cur.days$date, "%Y")),
+                             FUN = sum, na.rm = TRUE)
+  count.tropic$year <- as.Date (paste0 (count.tropic$year, "-01-01"))
+  ggplot2::ggplot (data = count.tropic, aes (x = year, y = x)) + geom_point(colour = "red") + 
+    geom_smooth (method = "loess", formula = y ~ x) + 
+    ggtitle (paste (Location, txt.tropic.nights)) + xlab (txt.time.years) +
+    ylab (txt.num.tropic.nights) + theme_light()
+} else print (txt.no.tropic.nights)
+cat (paste0 ("\\caption{", paste (Location, txt.tropic.nights, "}", nl)))
+@
+\end{figure}
+Tropske noči so tiste, kjer temperatura tudi ponoči ne pade pod 20$^\circ$C, kar je značilno za kraje, kjer je najbolj prijetno spati v viseči mreži.
+
+Ljubljana pred letom 1960 ni poznala tropskih noči. Od leta 1990 je takih noči že več kot ena na leto, zadnja leto jih že tudi 10 in več. Tropske noči spoznavajo že tudi višje ležeči kraji.
+
+To pomeni, da se stavba in okolica tudi čez noč ne shladi toliko, da bi ohranjala prijetnejšo temperaturo čez dan.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+library (ggplot2)
+
+cur.days <- subset (day.term, subset = date < "2022-01-01")
+cold.days <- subset (cur.days, subset = max.temp.C <= 0)
+if (dim (cold.days) [1] > 0) {
+  # postej jih po letih
+  count.cold.days <- aggregate (x = cur.days$max.temp.C <= 0,
+                                by = list (year = format (cur.days$date, "%Y")),
+                                FUN = sum, na.rm = TRUE)
+  count.cold.days$year <- as.Date (paste0 (count.cold.days$year, "-01-01"))
+  ggplot2::ggplot (data = count.cold.days, aes (x = year, y = x)) + geom_point(colour = "blue") + 
+    geom_smooth (method = "loess", formula = y ~ x) + 
+    ggtitle (paste (Location, txt.freezing.days )) + xlab (txt.time.years) +
+    ylab (txt.num.freezing.days) + theme_light()
+} else print (txt.no.freezing.days)
+cat (paste0 ("\\caption{", paste (Location, txt.freezing.days, "}", nl)))
+@
+\end{figure}
+Podnebne spremembe v Ljubljani se odražajo z zmanjšanim številom dni z zmrzaljo. Podobno se z leti zmanjšuje tudi število dni s snežno odejo.
+
+Višje temperature in manjše število dni s snežno odejo pomenijo manj stroškov za ogrevanje stavb,  zmanjšanje stroškov zimske službe, a stanjšana snežna odeja v gorah pomeni tudi manj rezerve vskladiščene vode za napajanje rek čez poletje.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Mmean.ave.temp.C))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 ("2021", "-01-01") <= month & month <= paste0 ("2021", "-12-01"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Mmean.ave.temp.C ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+      ylim = c (-20, 30),
+      main = paste (Location, txt.cmp.month.ave.day.2021),
+      xlab = txt.time.months, ylab = txt.ave.day.temp.deg)
+stripchart (Mmean.ave.temp.C.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = -50, to = 50, by = 5), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, "leto 2021"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, txt.cmp.month.ave.day.2021, "}", nl)))
+@
+\end{figure}
+Leto 2021 je imelo zelo topel februar (glede na referenčna leta od 1981 do 2010) ter ekstremno vroča meseca junij in julij, vroč avgust in zelo topel september, čemur je sledil razmeroma hladen oktober.\\
+
+\begin{minipage}{0.9\linewidth}
+Opombe:\\
+Gornji grafikon predstavlja okvirje z ročaji (angl. boxplot) mesečnih povprečij povprečnih dnevnih temperatur v referenčnem obdobju ter točkovni grafikon mesečnih povprečij leta 2021 po mesecih v letu.\\
+
+'Okvir' predstavlja osrednjih 50\% vrednosti temperatur, 'ročaji' pa še preostalih 25\% vrednosti na vsaki strani okvirja. Črta, ki deli okvir predstavlja mediano. Več o tem grafikonu lahko preberete na wikipediji na \url{https://en.wikipedia.org/wiki/Box_plot}.
+\end{minipage}
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Mmean.ave.temp.C))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 ("2022", "-01-01") <= month & month <= paste0 ("2022", "-09-30"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Mmean.ave.temp.C ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+      ylim = c (-20, 30),
+      main = paste (Location, txt.cmp.month.ave.day.2022),
+      xlab = txt.time.months, ylab = txt.ave.day.temp.deg)
+stripchart (Mmean.ave.temp.C.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = -50, to = 50, by = 5), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, "leto 2022"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, txt.cmp.month.ave.day.2022, "}", nl)))
+@
+\end{figure}
+Leto 2022 je imelo zelo topel februar (glede na referenčna leta od 1981 do 2010) in ekstremno vroče mesece maj, junij in julij. V juliju 2022 je bila dosežena so sedaj rekordna izračunana povprečna mesečna temperatura 24,45$^\circ$C v Ljubljani.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (month.stat, subset = "1981-01-01" <= month & month <= "2010-12-31" & substr (month.str, 6, 7) == "06")
+tmp.curr <- subset (month.stat, subset = "2011-01-01" <= month & month <= "2022-12-31" & substr (month.str, 6, 7) == "06")
+plot (density (tmp.ref$Mmean.ave.temp.C), xlim = c (14, 26), ylim = c (0, 0.4), col = "black", main = "",
+      xlab = "Stopinje C", ylab = "Gostota verjetnosti")
+lines (density (tmp.curr$Mmean.ave.temp.C), xlim = c (14, 26), ylim = c (0, 0.4), col = "red", main = "")
+abline (v = median (tmp.ref$Mmean.ave.temp.C), col  = "black", lty = 2)
+abline (v = median (tmp.curr$Mmean.ave.temp.C), col  = "red", lty = 2)
+title ("Porazdelitvi povprečnih junijskih temperatur in mediani po obdobjih")
+legend ("topleft", legend = c (paste ("junij", txt.ref.int), "junij obdobje 2011-2022"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, "porazdelitvi povprečnih junijskih temperatur in mediani po obdobjih", "}", nl)))
+@
+\end{figure}
+Porazdelitev temperatur v referenčnem obdobju 1981-2010 kaže, da so bile takrat najpogostejše povprečne junijske temperature okrog 18$^\circ$C, v obdobju 2011-2022 pa kar 20$^\circ$C. Mediana referenčena obdobja je bila okrog 19$^\circ$C, v obdobju 2011-2022 pa okrog 21$^\circ$C. Vroč junij se torej pojavlja že desetletje.\\
+
+\begin{minipage}{0.9\linewidth}
+Opomba:\\
+Mediana je srednja vrednost spremenljivke od katerih jih je natanko pol pod in pol nad njo. Pri simetričnih porazdelitvah spremenljivk je mediana enaka povprečju, sicer pa ne.
+\end{minipage}
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (month.stat, subset = "1981-01-01" <= month & month <= "2010-12-31" & substr (month.str, 6, 7) == "07")
+tmp.curr <- subset (month.stat, subset = "2011-01-01" <= month & month <= "2022-12-31" & substr (month.str, 6, 7) == "07")
+plot (density (tmp.ref$Mmean.ave.temp.C), xlim = c (14, 26), ylim = c (0, 0.4), col = "black", main = "",
+      xlab = "Stopinje C", ylab = "Pogostost")
+lines (density (tmp.curr$Mmean.ave.temp.C), xlim = c (14, 30), ylim = c (0, 0.4), col = "red", main = "")
+abline (v = median (tmp.ref$Mmean.ave.temp.C), col  = "black", lty = 2)
+abline (v = median (tmp.curr$Mmean.ave.temp.C), col  = "red", lty = 2)
+title ("Porazdelitvi povprečnih julijskih temperatur in mediani po obdobjih")
+legend ("topleft", legend = c (paste ("julij", txt.ref.int), "julij obdobje 2011-2022"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, "porazdelitvi povprečnih julijskih temperatur in mediani po obdobjih", "}", nl)))
+@
+\end{figure}
+Podobno kot velja za junij, velja tudi za julij. Porazdelitev temperatur v referenčnem obdobju 1981-2010 kaže, da so bile takrat najpogostejše povprečne julijske temperature okrog 21$^\circ$C, v obdobju 2011-2022 pa 23$^\circ$C in ti vrednosti so tudi blizu medianam.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+d.ref <- subset (day.term, subset = "1981-01-01" <= date & date <= "2010-12-31", select = c (date, ave.temp.C))
+n.ref <- subset (day.term, subset = "2011-01-01" <= date, select = c (date, ave.temp.C))
+d.r <- cbind (d.ref, col = ".0")
+d.n <- cbind (n.ref, col = ".1")
+d <- rbind (d.r, d.n)
+d <- cbind (d, mesec = paste0 (format (d$date, "%m"), d$col))
+
+boxplot (ave.temp.C ~ mesec, data = d, col = c ("grey", "red"), varwidth = TRUE,
+         main = "Primerjava povprečnih dnevnih temperatur po obdobjih",
+         xlab = "Čas in obdobja (meseci v letu in obdobje)",
+         ylab = "Povprečna dnevna temperatura (st C)")
+legend ("topleft", legend = c ("0: 1981-2010", "1: 2011-2022"), lty = 1, col = c ("grey", "red"))
+abline (h = seq (from = -50, to = 50, by = 10), col = "lightgrey")
+abline (v= seq (2.5, 22.5, 2), lty = 3, col = "grey")
+cat (paste0 ("\\caption{", paste (
+"Primerjava povprečnih dnevnih temperatur po mesecih v letih 2011-2022 z referenčnimi leti 1981-2010", "}", nl)))
+@
+\end{figure}
+Iz pregleda povprečnih dnevnih temperatur po vseh mesecih je očitno, da so temperature v obdobju 2011-2022 na splošno višje od referenčnih iz let 1981-2010.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.start <- "2021-05-01"
+tmp.end <- "2021-09-30"
+
+tmp1 <- subset (day.term, subset = tmp.start <= date & date <= tmp.end, select = c (date, ave.temp.C))
+tmp1 <- cbind (d = format (tmp1$date, "%m-%d"), tmp1)
+tmp2 <- cur.ref.days
+tmp2 <- cbind (d = format (tmp2$day, "%m-%d"), tmp2)
+tmp <- merge (tmp1, tmp2, by = "d")
+tmp <- subset (tmp, subset = tmp.start <= date & date <= tmp.end)
+ref.box <- subset (cur.box.days, subset = substr (tmp.start, 6, 10) <= substr (date.str, 6, 10) &
+                     substr (date.str, 6, 10) <= substr (tmp.end, 6, 10))
+
+boxplot (ave.temp.C ~ format (date, paste0 ("%m-%d")), data = ref.box, col = "lightgrey",
+         main = paste (Location,
+                       "primerjava povprečnih dnevnih temperatur\nod maja do julija 2021 z referenčnimi leti 1981-2010"),
+         xlab = txt.time.days, ylab = "Povprečne dnevne temperature (stopinje C)", las = 2, cex.axis = 0.8)
+stripchart (ave.temp.C ~ date, data = tmp, vertical = TRUE, add = T, pch = 16, col = "red")
+legend ("topleft", 
+        legend = c (txt.ref.int, "leto 2021"),
+        lty = c (1), col = c ("grey", "red"))
+abline (h = seq (from = -50, to = 50, by = 10), col = "lightgrey")
+cat (paste0 ("\\caption{", paste (
+"Primerjava povprečnih dnevnih temperatur od maja do julija 2021 z referenčnimi leti 1981-2010", "}", nl)))
+@
+\end{figure}
+Nekatere povprečne dnevne temperature od sredine junija in do prve četrtine julija leta 2021 so bile daleč nad temperaturami referenčnega obdobja 1981-2010 in blizu rekordno zabeleženim nasploh. Povprečna dnevna temperatura dne 23.06.2021 je bila do tedaj peta najvišja temperatura zabeležena v mesecu juniju, dokler je ni prekosila druga najvišja dne 27.06.2022 in jo porinila na šesto mesto v juniju.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.start <- "2022-05-01"
+tmp.end <- "2022-09-30"
+tmp1 <- subset (day.term, subset = tmp.start <= date & date <= tmp.end, select = c (date, ave.temp.C))
+tmp1 <- cbind (d = format (tmp1$date, "%m-%d"), tmp1)
+tmp2 <- cur.ref.days
+tmp2 <- cbind (d = format (tmp2$day, "%m-%d"), tmp2)
+tmp <- merge (tmp1, tmp2, by = "d")
+tmp <- subset (tmp, subset = tmp.start <= date & date <= tmp.end)
+ref.box <- subset (cur.box.days, subset = substr (tmp.start, 6, 10) <= substr (date.str, 6, 10) &
+                     substr (date.str, 6, 10) <= substr (tmp.end, 6, 10))
+
+boxplot (ave.temp.C ~ format (date, paste0 ("%m-%d")), data = ref.box, col = "lightgrey",
+         main = paste (Location,
+                       "primerjava povprečnih dnevnih temperatur\nod maja do julija 2022 z referenčnimi leti 1981-2010"),
+         xlab = txt.time.days, ylab = "Povprečne dnevne temperature (stopinje C)", las = 2, cex.axis = 0.8)
+stripchart (ave.temp.C ~ date, data = tmp, vertical = TRUE, add = T, pch = 16, col = "red")
+legend ("topleft", 
+        legend = c (txt.ref.int, "leto 2022"),
+        lty = c (1), col = c ("grey", "red"))
+abline (h = seq (from = -50, to = 50, by = 10), col = "lightgrey")
+cat (paste0 ("\\caption{", paste (
+"Primerjava povprečnih dnevnih temperatur od maja do julija 2022 z referenčnimi leti 1981-2010", "}", nl)))
+@
+\end{figure}
+Povprečne dnevne temperature v letu 2022 so bile prav tako visoke ali rekordne že v maju in nato spet v juniju in juliju. Dne 27.06.2022 je bila zabeležena druga najvišja povprečna dnevna temperatura meseca junija 28,5$^\circ$C . Dne 22.07.2022 je bila izmerjena do takrat četrta najvišja povprečna temperatura sploh, dokler ni bila naslednjega dne 23.07.2022 izmerjena rekordna povprečna dnevna temperatura 30,4$^\circ$C in temperaturo prejšnjega dne potisnila na peto mesto splošne razvrstitve.
+\clearpage
+\section{Sončno obsevanje}
+\begin{figure}[ht]
+<<eval=TRUE, echo=FALSE, results="asis", cache=FALSE, warning=FALSE, message=FALSE, comment=NA, out.width='100%'>>=
+data <- subset (year.stat, subset = "1949" <= year.str & year.str <= "2021",
+                select = c (year, Ysum.sun.h))
+
+ggplot2::ggplot (data = data, aes (x = year, y = Ysum.sun.h)) + geom_line() +
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, txt.year.sun)) +
+  xlab (txt.time.years) + ylab (txt.month.sun.h) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.year.sun, "}", nl)))
+@
+\end{figure}
+Porast temperature lahko pripišemo spremenjenemu režimu mešanja polarnih in tropskih zračnih mas, a tudi povečanemu sončnemu sevanju za slabih 400 h na leto.
+
+Povečano trajanje sončnega obsevanja upravičuje smiselnost postavljanja sončnih elektrarn.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Msum.sun.h))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 ("2021", "-01-01") <= month & month <= paste0 ("2021", "-12-01"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Msum.sun.h ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+         ylim = c (0, 370),
+         main = paste (Location, "primerjava skupnega mesečnega sončnega sevanja\nv letu 2021 z referenčnim obdobjem 1981-2010"),
+         xlab = txt.time.months, ylab = txt.month.sun.h)
+stripchart (Msum.sun.h.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = 0, to = 350, by = 100), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, "leto 2021"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste ("Primerjava skupnega mesečnega sončnega sevanja v letu 2021 z referenčnim obdobjem 1981-2010", "}", nl)))
+@
+\end{figure}
+V letu 2021 je bil nad vse sončen marec, precej sončen april in zelo oblačen maj, rekordno sončen junij, ter sončni julij, avgust in september. Januar in december sta bila skoraj brez sonca.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Msum.sun.h))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 ("2022", "-01-01") <= month & month <= paste0 ("2022", "-12-01"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Msum.sun.h ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+         ylim = c (0, 370),
+         main = paste (Location, "primerjava skupnega mesečnega sončnega sevanja\nv letu 2022 z referenčnim obdobjem 1981-2010"),
+         xlab = txt.time.months, ylab = txt.month.sun.h)
+stripchart (Msum.sun.h.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = 0, to = 350, by = 100), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, "leto 2022"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste ("Primerjava skupnega mesečnega sončnega sevanja v letu 2022 z referenčnim obdobjem 1981-2010", "}", nl)))
+@
+\end{figure}
+V letu 2022 so bili sončni meseci januar, marec, junij in julij. Sočasno pomanjkanje padavin je povzročilo izredno sušo.
+\clearpage
+\section{Padavine}
+\begin{figure}[ht]
+<<eval=TRUE, echo=FALSE, results="asis", cache=FALSE, warning=FALSE, message=FALSE, comment=NA, out.width='100%'>>=
+data <- subset (year.stat, subset = year.str <= "2021",
+                select = c (year, Ysum.precipit.mm))
+
+ggplot2::ggplot (data = data, aes (x = year, y = Ysum.precipit.mm)) + geom_line() +
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, "- maksimalne dnevne padavine po letih")) +
+  xlab (txt.time.years) + ylab (txt.rain.mm) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.year.rain, "}", nl)))
+@
+\end{figure}
+Ljubljana dobiva letno od 1000 mm do 1800 mm padavin. Letne količine precej nihajo, saj 'mokra' leta prinesejo skoraj dvakrat toliko padavin kot 'suha' leta. Kot je trenutno videti, se količina padavin bistveno ne spreminjala z leti. Težava pa postaja porazdelitev padavin med letom ter občasni pojavi obilnih dnevnih padavin in občasna dolgotrajna sušna obdobja.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE, echo=FALSE, results="asis", cache=FALSE, warning=FALSE, message=FALSE, comment=NA, out.width='100%'>>=
+wet <- subset (cur.days, subset = precipit.mm > 0)
+count.wet <- aggregate (x = cur.days$precipit.mm > 0,
+                           by = list (year = format (cur.days$date, "%Y")),
+                           FUN = sum, na.rm = TRUE)
+count.wet$year <- as.Date (paste0 (count.wet$year, "-01-01"))
+
+ggplot2::ggplot (data = count.wet, aes (x = year, y = x)) + geom_point(colour = "blue") + 
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, txt.num.rain.days)) + xlab (txt.time.years) +
+  ylab (txt.num.Rain.days) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.num.rain.days, "}", nl)))
+@
+\end{figure}
+V Ljubljani vsaj nekaj pada z neba (npr. dež ali sneg) okrog 150 dni na leto. Do sedaj je bilo zabeleženih od 119 do 197 deževnih dni v letu. Povprečno bi nam torej dežnik prišel prav vsake 3 dni.
+
+Kranjska marela je torej z razlogom postala del narodne noše.
+\clearpage
+\begin{figure}[ht]
+\begin{center}
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='80%'>>=
+wet <- subset (cur.days, subset = precipit.mm > 0)
+count.wet <- aggregate (x = cur.days$precipit.mm > 0,
+                        by = list (year = format (cur.days$date, "%Y")),
+                        FUN = sum, na.rm = TRUE)
+count.wet$year <- as.Date (paste0 (count.wet$year, "-01-01"))
+
+dif.wet <- data.frame (date = wet$date [1:length(wet$date)-1],
+                       dif  = as.integer (diff (wet$date) - 1))
+ggplot2::ggplot (data = dif.wet, aes (x = date, y = dif)) + geom_point(size=0.5) +
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, txt.no.days.precipit)) +
+  xlab (txt.time.years) + ylab (txt.no.days.Precipit) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.no.days.precipit, "}", nl)))
+@
+\end{center}
+\end{figure}
+Število dni med padavinami je 27.240 dneh med 01.01.1948 in 31.07.2022 bilo porazdeljeno takole:\\
+%%\begin{table}[h]
+%%\begin{center}
+%%\caption{Tabela števila dni med padavinami}
+\begin{tabular}{c|r|l} 
+Interval & Število dni & Opombe\\
+\hline
+0 & 7342 & To število vključuje tudi več zaporednih dni s padavinami\\
+1 & 1289\\
+2 & 831\\
+3 & 568\\
+4 do 5 & 696\\
+6 do 10 & 636\\
+11 do 20 & 187\\
+21 do 30 & 22\\
+31 do 51 & 5\\
+\end{tabular}
+%%\end{center}
+%%\end{table}
+\\
+
+Število dni med padavinami ni enakomerno porazdeljeno. Najpogosteje padavine padajo v dveh ali več zaporednih dneh ali z razmakom enega dne, precej pogosto pa v razmakih do dva tedna. 
+
+Če je dolgo obdobje brez padavin v vročem obdobju, ki navadno sovpada z kritično rastjo rastlin, je posledica velika škoda v kmetijstvu. Sorodne težave so tudi, če padavine sicer so, a so nezadostne. V zbirki vremenskih podatkov je 27 obdobij brez padavin trajajoče tri tedne ali dalj. Najdaljše zabeleženo obdobje brez padavin pa je trajalo kar 51 dni.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+cur.days <- subset (day.term, subset = date < "2022-01-01")
+
+snowy <- subset (cur.days, subset = new.snow.cm > 0)
+count.snowy <- aggregate (x = cur.days$new.snow.cm > 0,
+                        by = list (year = format (cur.days$date, "%Y")),
+                        FUN = sum, na.rm = TRUE)
+count.snowy$year <- as.Date (paste0 (count.snowy$year, "-01-01"))
+ggplot2::ggplot (data = count.snowy, aes (x = year, y = x)) + geom_point(colour = "blue") + 
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, txt.num.snowy.days)) + xlab ("Leta") + 
+  ylab (txt.num.Snowy.days) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, txt.num.snowy.days, "}", nl)))
+@
+\end{figure}
+Število dni s snežnimi padavinami se manjša iz leta v leto. To je sicer ugodno za zmanjšanje stroškov zimskega čiščenja snega, a povečuje verjetnost spomladanske suše, kar je slabo za kmetijstvo.
+
+Količina snežnih padavin se zmanjšuje tudi v gorskih predelih npr. v Alpah. Taljenje snega v gorskih predelih napaja reke, ki tečejo skozi Ljubljano in okolico in napajajo podtalnico iz katerega uporabljamo vodo za vodovod. Nižanje vodostaja podatalnice zaradi suše lahko ogrozi tudi oskrbo mesta z vodo.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Msum.precipit.mm))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 (latest.year, "-01-01") <= month & month <= paste0 (latest.year, "-12-01"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Msum.precipit.mm ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+         ylim = c (0, 700),
+         main = paste (Location,
+                       "primerjava skupnih mesečnih padavin v letu 2021\nz referenčnimi mesečnimi vsotami v letih 1981-2010"),
+         xlab = txt.time.months, ylab = txt.month.rain.mm)
+stripchart (Msum.precipit.mm.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = 0, to = 700, by = 100), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, txt.last.year), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, txt.cmp.month.rain, "}", nl)))
+@
+\end{figure}
+Povprečno v Ljubljani pade vsak mesec okrog 100 mm padavin. Kadar so padavine jih v povprečju dnevno pade med 3 in 4 mm. Vendar so tudi leta in dnevi, ko je porazdelitev padavin zelo neenakomerna. V letu 2021 je bil zelo moker april, ekstremno moker maj, čemur je sledil skoraj čisto suh junij in spet moker julij, malo namočen avgust ter nato spet moker september in zelo suh oktober.
+
+Graf skupnih mesečnih padavin ne kaže dnevne porazdelitve padavin. Iz osnovnih podatkov pa lahko izluščimo 30.09.2021, ki se ga gotovo spominjajo vsi gasilci v Ljubljani. V prejšnji noči je nampreč napadlo kar 120 mm dežja, kar je četrta najvišja izmerjena količina med arhivskimi vremenskimi podatki zabeleženimi v Ljubljani od leta 1948. Ta dnevna količina je bila večja od polovice skupne mesečne količine v septembru 2021. Rezultat so bile nekajurne poplave vseh podvozov in številnih kleti v Ljubljani.
+
+Oktober je sicer praviloma en od bolj mokrih mesecev, a je bil v letu 2021 zelo suh. Zaradi tega je sicer bilo leto 2021 srednje mokro, a oktobrski izpad padavin je že bil uvod v suh začetek leta 2022. 
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.max <- aggregate (day.term$precipit.mm, by = list (year = as.integer(format (day.term$date, "%Y"))), FUN = max)
+colnames(tmp.max) [2] <- "Ymax.precipit.mm"
+
+ggplot2::ggplot (data = tmp.max, aes (x = year, y = Ymax.precipit.mm)) + geom_point() +
+  geom_smooth (method = "loess", formula = y ~ x) + 
+  ggtitle (paste (Location, "rekordne dnevne padavine po letih")) +
+  xlab (txt.time.years) + ylab (txt.max.daily.precipit.Year) + theme_light()
+cat (paste0 ("\\caption{", paste (Location, "maksimalne dnevne padavine po posameznih letih", "}", nl)))
+@
+\end{figure}
+Običajno na dan pade le od 3 mm do 4 mm padavin. Maksimalne dnevne padavine v letu pa se gibljejo med 50 mm in 80 mm. Največje zabeležene dnevne količine so kar 140 mm, kar bi bile obilne mesečne količine, in so bile zabeležene v zadnjem desetletju. Že omenjeni naliv zabeležen 30.09.2021 je bil tudi letni rekord za leto 2021. Presegel ga je naliv dne 15.09.2022 s kar 157  mm.
+\clearpage
+\begin{figure}[ht]
+<<eval=TRUE,echo=FALSE,results="asis",cache=FALSE,warning=FALSE,message=FALSE,comment=NA,out.width='100%'>>=
+tmp.ref <- subset (ref.months.1981.2010, select = c (month.str, Msum.precipit.mm))
+tmp.ref <- cbind (tmp.ref, key = substr (tmp.ref$month.str, start = 6, stop = 10))
+tmp.curr <- subset (month.stat, subset = paste0 ("2022", "-01-01") <= month & month <= paste0 ("2022", "-12-01"))
+tmp.curr <- cbind (tmp.curr, key = substr (tmp.curr$month.str, start = 6, stop = 10))
+tmp <- merge (tmp.ref, tmp.curr, by = "key")
+
+boxplot (Msum.precipit.mm ~ format (month, paste0 ("%m")), data = month.stat, varwidth = TRUE,
+         ylim = c (0, 700),
+         main = paste (Location,
+                       "primerjava skupnih mesečnih padavin v letu 2022\nz referenčnimi mesečnimi vsotami v letih 1981-2010"),
+         xlab = txt.time.months, ylab = txt.month.rain.mm)
+stripchart (Msum.precipit.mm.y ~ month, data = tmp, vertical = TRUE,
+            add = TRUE, pch = 16, col = "red")
+abline (h = seq (from = 0, to = 700, by = 100), col = "lightgrey")
+legend ("topleft", legend = c (txt.ref.int, "leto 2022"), pch = 15, col = c ("black", "red"))
+cat (paste0 ("\\caption{", paste (Location, txt.cmp.month.rain, "}", nl)))
+@
+\end{figure}
+V letu 2022 so bili do sedaj vsi meseci razen aprila zelo suhi. Marec je bil skoraj brez padavin, podobno suho je bilo v maju in juniju. V juliju je en sam naliv zabeležen 06.07.2022 s 44 mm večinsko prispeval k mesečni količini padavin. September 2022 pa je bil rekordno moker september s kar obstajajo podatki. V tem mesecu je skupaj napadlo kar 496 mm  padavin. Glavnina padavin je padla 15.09. kar 157 mm nato naslednji dan še 95 mm ter 25.09 in 29.09. nad 60 mm.
+
+Obenem so bile povprečne mesečne temperature višje od povprečja, sončno obsevanje tudi povečano, kar je vse povzročilo sušo. To se je letos še bolj kot v Ljubljani posebej izrazilo na Krasu, kar je bil en od pogojev za največji gozdni požar v Sloveniji. V 7 mesecih letošnjega leta 2022 je v Ljubljani padlo komaj 378 mm padavin, kar je manj kot je lahko skupna količina dveh bolj mokrih mesecev.
+\clearpage
+\section{Zaključek}
+Klimatske spremembe nas opominjajo, da smo kljub moderni tehnologiji odvisni od narave. V zadnjih par letih so posredne vplive predvsem vplivale na povečano aktivnost služb za zaščito in reševanje kot npr. gasilcev. 
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.85\linewidth]{Pictures/img_20210929_213404_1.jpg} 
+\caption{Poplavljen podvoz na Miheličevi cesti 29.09.2021}
+\end{center}
+Vir: PGD Vižmarje-Brod\\
+\url{https://www.pgd-vizmarje-brod.si/vecji-obseg-neurje-september-2021/}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=0.85\linewidth]{Pictures/img_7194_1.jpeg} 
+\caption{Požar slame na travniku 21.07.2022}
+\end{center}
+Vir: PGD Vižmarje-Brod\\
+\url{https://www.pgd-vizmarje-brod.si/pozar-slame-obvozna-cesta-100/}
+\end{figure}
+
+A pričakovane hitrejše in še večje spremembe klime bodo vplivale na vse nas!
+\clearpage
+\section{Kazalo slik}
+\listoffigures
+\end{document}
